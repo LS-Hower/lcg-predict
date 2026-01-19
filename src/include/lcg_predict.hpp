@@ -12,6 +12,8 @@
 #include <concepts>
 #include <cstdint>
 #include <limits>
+#include <random>
+#include <sstream>
 #include <type_traits>
 #include <utility>
 
@@ -211,9 +213,34 @@ public:
     [[nodiscard]] constexpr friend auto operator==(UnsignedModder lhs, UnsignedModder rhs) noexcept -> bool = default;
 };
 
+template <typename>
+struct std_lcg_traits;
+
+template <typename UIntType, UIntType ax, UIntType cx, UIntType mx>
+struct std_lcg_traits<std::linear_congruential_engine<UIntType, ax, cx, mx>> {
+    using result_type = UIntType;
+    static constexpr UIntType a { ax };
+    static constexpr UIntType c { cx };
+    static constexpr UIntType m { mx };
+};
+
+template <typename T, typename UIntType>
+concept std_lcg_of = std::same_as<UIntType, typename std_lcg_traits<T>::result_type>;
+
 } // namespace ls_hower::lcg_predict::detail
 
 namespace ls_hower::lcg_predict {
+
+template <typename UIntType, UIntType a, UIntType c, UIntType m>
+[[nodiscard]] auto extract_state(const std::linear_congruential_engine<UIntType, a, c, m>& engine) -> UIntType
+{
+    std::ostringstream oss {};
+    oss << engine;
+    std::istringstream iss { oss.str() };
+    UIntType state {};
+    iss >> state;
+    return state;
+}
 
 template <std::unsigned_integral UIntType>
 class LCGAffineTransform {
@@ -229,6 +256,14 @@ public:
         , a_ { modder_(a) }
         , c_ { modder_(c) }
     {
+    }
+
+    template <typename StdEngine>
+    [[nodiscard]] static constexpr auto from_std() noexcept -> LCGAffineTransform
+        requires detail::std_lcg_of<StdEngine, UIntType>
+    {
+        using traits = detail::std_lcg_traits<StdEngine>;
+        return LCGAffineTransform { traits::a, traits::c, traits::m };
     }
 
     constexpr auto set_a(UIntType a) noexcept -> void
@@ -368,6 +403,18 @@ public:
     explicit constexpr LCGEngine(UIntType a, UIntType c, UIntType m = 0, result_type state = default_seed) noexcept
         : LCGEngine { Affine { a, c, m }, state }
     {
+    }
+
+    // Operations on `std::linear_congruential_engine` are not `constexpr`.
+    // So the factory function is not `constexpr`.
+    template <typename StdEngine>
+    [[nodiscard]] static auto from_std(StdEngine engine) noexcept -> LCGEngine
+        requires detail::std_lcg_of<StdEngine, UIntType>
+    {
+        return LCGEngine {
+            Affine::template from_std<StdEngine>(),
+            extract_state(engine),
+        };
     }
 
     [[nodiscard]] constexpr auto operator()() noexcept -> result_type
