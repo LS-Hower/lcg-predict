@@ -5,8 +5,6 @@
 
 - Interface: Specialize `std::formatter`
 
-- Interface: Conversion from `std::linear_congruential_engine`
-
 - Portability: Encapsulate `__uint128_t` and `std::uint128_t`
 
 - Documentation: `README.md`
