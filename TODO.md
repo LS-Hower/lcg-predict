@@ -5,6 +5,6 @@
 
 - Interface: Specialize `std::formatter`
 
-- Portability: Encapsulate `__uint128_t` and `std::uint128_t`
+- Portability: Encapsulate `__uint128_t` and `__int128_t`
 
 - Documentation: `README.md`
