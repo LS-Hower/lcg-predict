@@ -266,35 +266,12 @@ public:
         return LCGAffineTransform { traits::a, traits::c, traits::m };
     }
 
-    constexpr auto set_a(UIntType a) noexcept -> void
-    {
-        a_ = modder_(a);
-    }
-
-    constexpr auto set_c(UIntType c) noexcept -> void
-    {
-        c_ = modder_(c);
-    }
-
-    constexpr auto set_m(UIntType m) noexcept -> void
-    {
-        modder_.m = m;
-    }
-
-    [[nodiscard]] constexpr auto a() const noexcept -> UIntType
-    {
-        return a_;
-    }
-
-    [[nodiscard]] constexpr auto c() const noexcept -> UIntType
-    {
-        return c_;
-    }
-
-    [[nodiscard]] constexpr auto m() const noexcept -> UIntType
-    {
-        return modder_.m;
-    }
+    constexpr auto set_a(UIntType a) noexcept -> void { a_ = modder_(a); }
+    constexpr auto set_c(UIntType c) noexcept -> void { c_ = modder_(c); }
+    constexpr auto set_m(UIntType m) noexcept -> void { modder_.m = m; }
+    [[nodiscard]] constexpr auto a() const noexcept -> UIntType { return a_; }
+    [[nodiscard]] constexpr auto c() const noexcept -> UIntType { return c_; }
+    [[nodiscard]] constexpr auto m() const noexcept -> UIntType { return modder_.m; }
 
     [[nodiscard]] constexpr auto operator()(result_type x) const noexcept -> result_type
     {
@@ -362,16 +339,8 @@ public:
         return detail::double_and_add(*this, n, composer, this->identity());
     }
 
-    [[nodiscard]] constexpr auto min() const noexcept -> result_type
-    {
-        return c_ == 0U ? 1U : 0U;
-    }
-
-    [[nodiscard]] constexpr auto max() const noexcept -> result_type
-    {
-        return modder_.m - 1U;
-    }
-
+    [[nodiscard]] constexpr auto min() const noexcept -> result_type { return c_ == 0U ? 1U : 0U; }
+    [[nodiscard]] constexpr auto max() const noexcept -> result_type { return modder_.m - 1U; }
     [[nodiscard]] friend constexpr auto operator==(const LCGAffineTransform& lhs, const LCGAffineTransform& rhs) noexcept -> bool = default;
 };
 
