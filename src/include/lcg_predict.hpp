@@ -226,8 +226,8 @@ public:
 
     explicit constexpr LCGAffineTransform(UIntType a, UIntType c, UIntType m = 0) noexcept // NOLINT (bugprone-easily-swappable-parameters)
         : modder_ { m }
-        , a_ { a }
-        , c_ { c }
+        , a_ { modder_(a) }
+        , c_ { modder_(c) }
     {
     }
 
@@ -431,7 +431,7 @@ template <unsigned long long step, std::unsigned_integral T>
     const auto prediction_vw {
         std::views::iota(0ULL, step)
         | std::views::transform(
-            [engine](unsigned long long i) -> T {
+            [engine](unsigned long long i) noexcept -> T {
                 return engine.value_after_n_steps(i + 1);
             })
     };
