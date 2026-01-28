@@ -117,3 +117,7 @@ are the same.
 This is done for all pre-defined engines.
 
 It is evaluated at compile-time, checked by `static_assert`. So it passes the test if the code compiles.
+
+## Mathematical Principle
+
+(TODO)

@@ -1,2 +1,1 @@
-- `README.md`:
-  - Describe algorithms.
+- Mathematical Principle part for `README.md`.
