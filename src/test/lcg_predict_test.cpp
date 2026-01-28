@@ -2,3 +2,7 @@
 
 #define LCG_PREDICT_TEST
 #include "../include/lcg_predict.hpp" // IWYU pragma: keep
+
+auto main() -> int
+{
+}

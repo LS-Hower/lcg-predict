@@ -1,9 +1,15 @@
 # lcg-predict
 C++20 Header-only library: A "fast jump" algorithm for LCG
 
-## Interface
+## Usage
 
-The header file is `src/include/lcg_predict.hpp`.
+Library: [`src/include/lcg_predict.hpp`](./src/include/lcg_predict.hpp).
+Test: [`src/test/lcg_predict_test.cpp`](./src/test/lcg_predict_test.cpp).
+
+To use: Include `lcg_predict.hpp`.
+To test: Compile `lcg_predict_test.cpp`. If it compiles, it passes the test. There is no need to run the generated executable.
+
+## Interface
 
 Given `T` as an unsigned integer type, the library exposes:
 - Class `LCGAffineTransform<T>`: combines three `a`, `c` and `m` of type `T`, describing an affine transformation x -> (ax + c) mod m.
@@ -97,3 +103,17 @@ constexpr inline LCGEngine<std::uint_fast64_t> musl_rand_engine { 63641362238467
 
 } // namespace ls_hower::lcg_predict
 ```
+
+## Test
+
+The test verifies that the pesudo-random number sequence (initial 10 terms) got from:
+
+- simulating (calling `operator()`)
+- predicting (calling `value_after_n_steps(i)`)
+- other source (OEIS)
+
+are the same.
+
+This is done for all pre-defined engines.
+
+It is evaluated at compile-time, checked by `static_assert`. So it passes the test if the code compiles.

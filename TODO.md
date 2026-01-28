@@ -1,3 +1,2 @@
 - `README.md`:
   - Describe algorithms.
-  - Describe testing method.
