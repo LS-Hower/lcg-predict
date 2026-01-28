@@ -5,8 +5,6 @@
 #ifndef LCG_PREDICT_HPP_INCLUDED
 #define LCG_PREDICT_HPP_INCLUDED
 
-#define LCG_PREDICT_TEST
-
 #include <algorithm>
 #include <cassert>
 #include <concepts>
@@ -227,12 +225,8 @@ struct std_lcg_traits<std::linear_congruential_engine<UIntType, ax, cx, mx>> {
 template <typename T, typename UIntType>
 concept std_lcg_of = std::same_as<UIntType, typename std_lcg_traits<T>::result_type>;
 
-} // namespace ls_hower::lcg_predict::detail
-
-namespace ls_hower::lcg_predict {
-
 template <typename UIntType, UIntType a, UIntType c, UIntType m>
-[[nodiscard]] auto extract_state(const std::linear_congruential_engine<UIntType, a, c, m>& engine) -> UIntType
+[[nodiscard]] auto extract_state(const std::linear_congruential_engine<UIntType, a, c, m>& engine) noexcept(false) -> UIntType
 {
     std::ostringstream oss {};
     oss << engine;
@@ -241,6 +235,10 @@ template <typename UIntType, UIntType a, UIntType c, UIntType m>
     iss >> state;
     return state;
 }
+
+} // namespace ls_hower::lcg_predict::detail
+
+namespace ls_hower::lcg_predict {
 
 template <std::unsigned_integral UIntType>
 class LCGAffineTransform {
@@ -348,11 +346,10 @@ template <std::unsigned_integral UIntType>
 class LCGEngine {
 public:
     using result_type = UIntType;
+    using affine_type = LCGAffineTransform<UIntType>;
 
 private:
-    using Affine = LCGAffineTransform<UIntType>;
-
-    Affine affine_;
+    affine_type affine_;
     result_type state_;
 
     [[nodiscard]] constexpr auto modder() const noexcept -> detail::UnsignedModder<UIntType>
@@ -363,25 +360,25 @@ private:
 public:
     static constexpr UIntType default_seed { 1U };
 
-    explicit constexpr LCGEngine(Affine affine, result_type state = default_seed) noexcept
+    explicit constexpr LCGEngine(affine_type affine, result_type state = default_seed) noexcept
         : affine_ { affine }
         , state_ { this->modder()(state) }
     {
     }
 
     explicit constexpr LCGEngine(UIntType a, UIntType c, UIntType m = 0, result_type state = default_seed) noexcept
-        : LCGEngine { Affine { a, c, m }, state }
+        : LCGEngine { affine_type { a, c, m }, state }
     {
     }
 
     // Operations on `std::linear_congruential_engine` are not `constexpr`.
     // So the factory function is not `constexpr`.
     template <typename StdEngine>
-    [[nodiscard]] static auto from_std(StdEngine engine) noexcept -> LCGEngine
+    [[nodiscard]] static auto from_std(StdEngine engine) noexcept(false) -> LCGEngine
         requires detail::std_lcg_of<StdEngine, UIntType>
     {
         return LCGEngine {
-            Affine::template from_std<StdEngine>(),
+            affine_type::template from_std<StdEngine>(),
             extract_state(engine),
         };
     }
@@ -405,12 +402,12 @@ public:
     [[nodiscard]] constexpr auto a() const noexcept -> UIntType { return affine_.a(); }
     [[nodiscard]] constexpr auto c() const noexcept -> UIntType { return affine_.c(); }
     [[nodiscard]] constexpr auto m() const noexcept -> UIntType { return affine_.m(); }
-    [[nodiscard]] constexpr auto affine() const noexcept -> Affine { return affine_; }
+    [[nodiscard]] constexpr auto affine() const noexcept -> affine_type { return affine_; }
     [[nodiscard]] constexpr auto state() const noexcept -> result_type { return state_; }
     constexpr auto set_a(UIntType new_a) noexcept -> void { affine_.set_a(new_a); }
     constexpr auto set_c(UIntType new_c) noexcept -> void { affine_.set_c(new_c); }
     constexpr auto set_m(UIntType new_m) noexcept -> void { affine_.set_m(new_m); }
-    constexpr auto set_affine(const Affine& new_affine) noexcept -> void { affine_ = new_affine; }
+    constexpr auto set_affine(const affine_type& new_affine) noexcept -> void { affine_ = new_affine; }
     constexpr auto set_state(result_type new_seed) noexcept -> void { state_ = this->modder()(new_seed); }
 
     [[nodiscard]] friend constexpr auto operator==(const LCGEngine& lhs, const LCGEngine& rhs) noexcept -> bool = default;
