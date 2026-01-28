@@ -93,7 +93,7 @@ concept BinaryClosure = requires(Op op, T x, T y) {
 };
 
 // Generalized fast pow algorithm.
-// Require: `op` be associative and commutative.
+// Require: `op` be associative.
 // Require: `unit` be the identity for `op`.
 // Returns: (elem op elem op ... op elem). There are `n` `elem`'s. If `n` == 0, returns `unit`.
 template <typename T, BinaryClosure<T> Op>
