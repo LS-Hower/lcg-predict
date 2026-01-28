@@ -4,9 +4,11 @@ C++20 Header-only library: A "fast jump" algorithm for LCG
 ## Usage
 
 Library: [`src/include/lcg_predict.hpp`](./src/include/lcg_predict.hpp).
+
 Test: [`src/test/lcg_predict_test.cpp`](./src/test/lcg_predict_test.cpp).
 
 To use: Include `lcg_predict.hpp`.
+
 To test: Compile `lcg_predict_test.cpp`. If it compiles, it passes the test. There is no need to run the generated executable.
 
 ## Interface
@@ -106,7 +108,7 @@ constexpr inline LCGEngine<std::uint_fast64_t> musl_rand_engine { 63641362238467
 
 ## Test
 
-The test verifies that the pesudo-random number sequence (initial 10 terms) got from:
+The test verifies that the pesudo-random number sequence (initial 10 terms) gotten from:
 
 - simulating (calling `operator()`)
 - predicting (calling `value_after_n_steps(i)`)
@@ -115,6 +117,8 @@ The test verifies that the pesudo-random number sequence (initial 10 terms) got 
 are the same.
 
 This is done for all pre-defined engines.
+
+It also checks `minstd_rand0_engine.value_after_n_steps(10000) == 1043618065` and `minstd_rand_engine.value_after_n_steps(10000) == 399268537`, corresponding to the required behavior of `std::minstd_rand0` and `std::minstd_rand` in C++ standard.
 
 It is evaluated at compile-time, checked by `static_assert`. So it passes the test if the code compiles.
 
