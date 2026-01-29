@@ -1,1 +1,1 @@
-- Mathematical Principle part for `README.md`.
+None.
