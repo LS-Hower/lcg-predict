@@ -249,7 +249,7 @@ class LCGAffineTransform {
 public:
     using result_type = UIntType;
 
-    explicit constexpr LCGAffineTransform(UIntType a, UIntType c, UIntType m = 0) noexcept // NOLINT (bugprone-easily-swappable-parameters)
+    explicit constexpr LCGAffineTransform(UIntType a, UIntType c, UIntType m = 0) noexcept // NOLINT : order of triplet (a, c, m) is conventional, not easily swappable.
         : modder_ { m }
         , a_ { modder_(a) }
         , c_ { modder_(c) }
