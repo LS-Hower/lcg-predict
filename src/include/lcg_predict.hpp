@@ -438,8 +438,8 @@ constexpr inline LCGEngine<std::uint_fast64_t> musl_rand_engine { 63641362238467
 namespace ls_hower::lcg_predict::detail::test {
 
 template <unsigned long long step, std::unsigned_integral T>
+[[nodiscard]] constexpr auto get_prediction(const LCGEngine<T>& engine) noexcept -> std::array<T, step>
     requires(step != std::numeric_limits<unsigned long long>::max())
-[[nodiscard]] constexpr auto get_prediction(const LCGEngine<T>& engine) -> std::array<T, step>
 {
     const auto prediction_vw {
         std::views::iota(0ULL, step)
@@ -454,8 +454,8 @@ template <unsigned long long step, std::unsigned_integral T>
 }
 
 template <unsigned long long step, std::unsigned_integral T>
+[[nodiscard]] constexpr auto get_simulation(const LCGEngine<T>& engine) noexcept -> std::array<T, step>
     requires(step != std::numeric_limits<unsigned long long>::max())
-[[nodiscard]] constexpr auto get_simulation(const LCGEngine<T>& engine) -> std::array<T, step>
 {
     std::array<T, step> simulation {};
     std::ranges::generate(simulation, engine);
@@ -463,17 +463,24 @@ template <unsigned long long step, std::unsigned_integral T>
 }
 
 template <unsigned long long step, std::unsigned_integral T>
+[[nodiscard]] constexpr auto prediction_actual_same(const LCGEngine<T>& engine, const std::array<T, step>& actual) noexcept -> bool
     requires(step != std::numeric_limits<unsigned long long>::max())
-[[nodiscard]] constexpr auto prediction_actual_same(const LCGEngine<T>& engine, const std::array<T, step>& actual) -> bool
 {
     return std::ranges::equal(get_prediction<step, T>(engine), actual);
 }
 
 template <unsigned long long step, std::unsigned_integral T>
+[[nodiscard]] constexpr auto simulation_actual_same(const LCGEngine<T>& engine, const std::array<T, step>& actual) noexcept -> bool
     requires(step != std::numeric_limits<unsigned long long>::max())
-[[nodiscard]] constexpr auto simulation_actual_same(const LCGEngine<T>& engine, const std::array<T, step>& actual) -> bool
 {
     return std::ranges::equal(get_simulation<step, T>(engine), actual);
+}
+
+template <unsigned long long step, std::unsigned_integral T>
+[[nodiscard]] constexpr auto prediction_simulation_same(const LCGEngine<T>& engine) noexcept -> bool
+    requires(step != std::numeric_limits<unsigned long long>::max())
+{
+    return std::ranges::equal(get_prediction<step, T>(engine), get_simulation<step, T>(engine));
 }
 
 // https://oeis.org/A096553 (without the first term 1)
@@ -484,6 +491,7 @@ constexpr inline std::array<std::uint_fast32_t, 10> krc_lcg_actual {
 
 static_assert(prediction_actual_same(krc_rand_engine, krc_lcg_actual));
 static_assert(simulation_actual_same(krc_rand_engine, krc_lcg_actual));
+static_assert(prediction_simulation_same<1000>(krc_rand_engine));
 
 // Operations on `std::linear_congruential_engine` are not `constexpr`, so actual values are hard-coded.
 // https://oeis.org/A221556
@@ -494,6 +502,7 @@ constexpr inline std::array<std::uint_fast32_t, 10> minstd_rand_actual {
 
 static_assert(prediction_actual_same(minstd_rand_engine, minstd_rand_actual));
 static_assert(simulation_actual_same(minstd_rand_engine, minstd_rand_actual));
+static_assert(prediction_simulation_same<1000>(minstd_rand_engine));
 static_assert(minstd_rand_engine.value_after_n_steps(10000) == 399268537);
 
 // Operations on `std::linear_congruential_engine` are not `constexpr`, so actual values are hard-coded.
@@ -505,6 +514,7 @@ constexpr inline std::array<std::uint_fast32_t, 10> minstd_rand0_actual {
 
 static_assert(prediction_actual_same(minstd_rand0_engine, minstd_rand0_actual));
 static_assert(simulation_actual_same(minstd_rand0_engine, minstd_rand0_actual));
+static_assert(prediction_simulation_same<1000>(minstd_rand0_engine));
 static_assert(minstd_rand0_engine.value_after_n_steps(10000) == 1043618065);
 
 // https://oeis.org/A384331 (without the first term 1)
@@ -515,6 +525,7 @@ constexpr inline std::array<std::uint_fast32_t, 10> msvc_rand_actual {
 
 static_assert(prediction_actual_same(msvc_rand_engine, msvc_rand_actual));
 static_assert(simulation_actual_same(msvc_rand_engine, msvc_rand_actual));
+static_assert(prediction_simulation_same<1000>(msvc_rand_engine));
 
 // https://oeis.org/A382305 (without the first term 1)
 constexpr inline std::array<std::uint_fast64_t, 10> rand48_actual {
@@ -524,6 +535,7 @@ constexpr inline std::array<std::uint_fast64_t, 10> rand48_actual {
 
 static_assert(prediction_actual_same(posix_rand48_engine, rand48_actual));
 static_assert(simulation_actual_same(posix_rand48_engine, rand48_actual));
+static_assert(prediction_simulation_same<1000>(posix_rand48_engine));
 
 constexpr inline std::array<std::uint_fast64_t, 10> musl_rand_actual {
     6364136223846793006U, 13885033948157127959U, 14678909342070756876U, 14340359694176818205U, 3490389784639564826U,
@@ -532,6 +544,7 @@ constexpr inline std::array<std::uint_fast64_t, 10> musl_rand_actual {
 
 static_assert(prediction_actual_same(musl_rand_engine, musl_rand_actual));
 static_assert(simulation_actual_same(musl_rand_engine, musl_rand_actual));
+static_assert(prediction_simulation_same<1000>(musl_rand_engine));
 } // namespace ls_hower::lcg_predict::detail::test
 
 #endif // LCG_PREDICT_TEST
