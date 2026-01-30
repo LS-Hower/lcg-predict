@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <concepts>
 #include <cstdint>
 #include <limits>
@@ -15,12 +16,12 @@ using namespace ls_hower::lcg_predict;
 
 template <unsigned long long step, std::unsigned_integral T>
 [[nodiscard]] constexpr auto get_prediction(const LCGEngine<T>& engine) noexcept -> std::array<T, step>
-    requires(step != std::numeric_limits<unsigned long long>::max())
 {
     const auto prediction_vw {
         std::views::iota(0ULL, step)
         | std::views::transform(
             [engine](unsigned long long i) noexcept -> T {
+                assert(i < std::numeric_limits<unsigned long long>::max());
                 return engine.value_after_n_steps(i + 1);
             })
     };
@@ -31,7 +32,6 @@ template <unsigned long long step, std::unsigned_integral T>
 
 template <unsigned long long step, std::unsigned_integral T>
 [[nodiscard]] constexpr auto get_simulation(const LCGEngine<T>& engine) noexcept -> std::array<T, step>
-    requires(step != std::numeric_limits<unsigned long long>::max())
 {
     std::array<T, step> simulation {};
     std::ranges::generate(simulation, engine);
@@ -40,21 +40,18 @@ template <unsigned long long step, std::unsigned_integral T>
 
 template <unsigned long long step, std::unsigned_integral T>
 [[nodiscard]] constexpr auto prediction_actual_same(const LCGEngine<T>& engine, const std::array<T, step>& actual) noexcept -> bool
-    requires(step != std::numeric_limits<unsigned long long>::max())
 {
     return std::ranges::equal(get_prediction<step, T>(engine), actual);
 }
 
 template <unsigned long long step, std::unsigned_integral T>
 [[nodiscard]] constexpr auto simulation_actual_same(const LCGEngine<T>& engine, const std::array<T, step>& actual) noexcept -> bool
-    requires(step != std::numeric_limits<unsigned long long>::max())
 {
     return std::ranges::equal(get_simulation<step, T>(engine), actual);
 }
 
 template <unsigned long long step, std::unsigned_integral T>
 [[nodiscard]] constexpr auto prediction_simulation_same(const LCGEngine<T>& engine) noexcept -> bool
-    requires(step != std::numeric_limits<unsigned long long>::max())
 {
     return std::ranges::equal(get_prediction<step, T>(engine), get_simulation<step, T>(engine));
 }
