@@ -91,8 +91,9 @@ concept BinaryClosure = requires(Op op, T x, T y) {
 // Require: `op` be associative.
 // Require: `unit` be the identity for `op`.
 // Returns: (elem op elem op ... op elem). There are `n` `elem`'s. If `n` == 0, returns `unit`.
-template <typename T, BinaryClosure<T> Op>
+template <typename T, typename Op>
 [[nodiscard]] constexpr auto double_and_add(const T& elem, unsigned long long n, const Op& op, const T& unit) -> T
+    requires BinaryClosure<std::remove_cvref_t<Op>, T>
 {
     T result { unit };
     T var_elem { elem };
@@ -146,7 +147,7 @@ public:
 
     template <typename U>
     [[nodiscard]] constexpr auto operator()(U x) const noexcept -> T
-        requires unsigned_integer_like<U> && (sizeof(U) <= sizeof(UnsignedBigger))
+        requires unsigned_integer_like<std::remove_cvref_t<U>> && (sizeof(U) <= sizeof(UnsignedBigger))
     {
         const auto real_m { this->real_m<UnsignedBigger>() };
         return static_cast<T>(x % real_m);
@@ -154,10 +155,10 @@ public:
 
     template <typename U>
     [[nodiscard]] constexpr auto operator()(U x) const noexcept -> T
-        requires signed_integer_like<U> && (sizeof(U) <= sizeof(SignedBigger))
+        requires signed_integer_like<std::remove_cvref_t<U>> && (sizeof(U) <= sizeof(SignedBigger))
     {
         const auto real_m { this->real_m<SignedBigger>() };
-        SignedBigger result { static_cast<SignedBigger>(x) % real_m };
+        const SignedBigger result { static_cast<SignedBigger>(x) % real_m };
         return static_cast<T>(result < 0 ? result + real_m : result);
     }
 
@@ -209,7 +210,7 @@ public:
 template <typename>
 struct std_lcg_traits;
 
-template <typename UIntType, UIntType ax, UIntType cx, UIntType mx>
+template <std::unsigned_integral UIntType, UIntType ax, UIntType cx, UIntType mx>
 struct std_lcg_traits<std::linear_congruential_engine<UIntType, ax, cx, mx>> {
     using result_type = UIntType;
     static constexpr UIntType a { ax };
@@ -220,7 +221,7 @@ struct std_lcg_traits<std::linear_congruential_engine<UIntType, ax, cx, mx>> {
 template <typename T, typename UIntType>
 concept std_lcg_of = std::same_as<UIntType, typename std_lcg_traits<T>::result_type>;
 
-template <typename UIntType, UIntType a, UIntType c, UIntType m>
+template <std::unsigned_integral UIntType, UIntType a, UIntType c, UIntType m>
 [[nodiscard]] auto extract_state(const std::linear_congruential_engine<UIntType, a, c, m>& engine) noexcept(false) -> UIntType
 {
     std::ostringstream oss {};
@@ -253,9 +254,9 @@ public:
 
     template <typename StdEngine>
     [[nodiscard]] static constexpr auto from_std() noexcept -> LCGAffineTransform
-        requires detail::std_lcg_of<StdEngine, UIntType>
+        requires detail::std_lcg_of<std::remove_cvref_t<StdEngine>, UIntType>
     {
-        using traits = detail::std_lcg_traits<StdEngine>;
+        using traits = detail::std_lcg_traits<std::remove_cvref_t<StdEngine>>;
         return LCGAffineTransform { traits::a, traits::c, traits::m };
     }
 
@@ -370,10 +371,10 @@ public:
     // So the factory function is not `constexpr`.
     template <typename StdEngine>
     [[nodiscard]] static auto from_std(StdEngine engine) noexcept(false) -> LCGEngine
-        requires detail::std_lcg_of<StdEngine, UIntType>
+        requires detail::std_lcg_of<std::remove_cvref_t<StdEngine>, UIntType>
     {
         return LCGEngine {
-            affine_type::template from_std<StdEngine>(),
+            affine_type::template from_std<std::remove_cvref_t<StdEngine>>(),
             extract_state(engine),
         };
     }

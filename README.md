@@ -30,7 +30,7 @@ public:
     explicit constexpr LCGAffineTransform(UIntType a, UIntType c, UIntType m = 0) noexcept;
     template <typename StdEngine>
     static constexpr auto from_std() noexcept -> LCGAffineTransform
-        requires detail::std_lcg_of<StdEngine, UIntType>;
+        requires detail::std_lcg_of<std::remove_cvref_t<StdEngine>, UIntType>
     constexpr auto set_a(UIntType a) noexcept -> void;
     constexpr auto set_c(UIntType c) noexcept -> void;
     constexpr auto set_m(UIntType m) noexcept -> void;
@@ -69,7 +69,7 @@ public:
     explicit constexpr LCGEngine(UIntType a, UIntType c, UIntType m = 0, result_type state = default_seed) noexcept;
     template <typename StdEngine>
     static auto from_std(StdEngine engine) noexcept(false) -> LCGEngine
-        requires detail::std_lcg_of<StdEngine, UIntType>;
+        requires detail::std_lcg_of<std::remove_cvref_t<StdEngine>, UIntType>
     constexpr auto operator()() noexcept -> result_type;
     // Time complexity: O(log(n)).
     constexpr auto value_after_n_steps(unsigned long long steps) const noexcept -> result_type;
