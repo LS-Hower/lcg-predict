@@ -63,18 +63,22 @@ struct least_doubled_int {
 private:
     using UnsignedBigger = least_doubled_uint_t<T>;
 
-    template <bool, typename U>
-    struct signed_chooser {
+    template <typename>
+    struct signed_chooser;
+
+    template <typename U>
+        requires (std::same_as<U, __uint128_t> || std::same_as<U, __int128_t>)
+    struct signed_chooser<U> {
         using type = __int128_t;
     };
 
-    template <typename U>
-    struct signed_chooser<false, U> {
+    template <std::integral U>
+    struct signed_chooser<U> {
         using type = std::make_signed_t<U>;
     };
 
 public:
-    using type = signed_chooser<std::is_same_v<UnsignedBigger, __uint128_t>, UnsignedBigger>::type;
+    using type = signed_chooser<UnsignedBigger>::type;
     static_assert(signed_integer_like<type>);
     static_assert(sizeof(type) >= 2 * sizeof(T));
 };
@@ -93,10 +97,10 @@ concept BinaryClosure = requires(Op op, T x, T y) {
 // Returns: (elem op elem op ... op elem). There are `n` `elem`'s. If `n` == 0, returns `unit`.
 template <typename T, typename Op>
 [[nodiscard]] constexpr auto double_and_add(const T& elem, unsigned long long n, const Op& op, const T& unit) -> T
-    requires BinaryClosure<std::remove_cvref_t<Op>, T>
+    requires BinaryClosure<std::remove_cvref_t<Op>, std::remove_cvref_t<T>>
 {
-    T result { unit };
-    T var_elem { elem };
+    std::remove_cvref_t<T> result { unit };
+    std::remove_cvref_t<T> var_elem { elem };
     for (/* void */; n != 0; n >>= 1U) {
         if ((n & 1U) != 0) {
             result = op(std::move(result), var_elem);
@@ -147,7 +151,7 @@ public:
 
     template <typename U>
     [[nodiscard]] constexpr auto operator()(U x) const noexcept -> T
-        requires unsigned_integer_like<std::remove_cvref_t<U>> && (sizeof(U) <= sizeof(UnsignedBigger))
+        requires unsigned_integer_like<std::remove_cvref_t<U>> && (sizeof(std::remove_cvref_t<U>) <= sizeof(UnsignedBigger))
     {
         const auto real_m { this->real_m<UnsignedBigger>() };
         return static_cast<T>(x % real_m);
@@ -155,7 +159,7 @@ public:
 
     template <typename U>
     [[nodiscard]] constexpr auto operator()(U x) const noexcept -> T
-        requires signed_integer_like<std::remove_cvref_t<U>> && (sizeof(U) <= sizeof(SignedBigger))
+        requires signed_integer_like<std::remove_cvref_t<U>> && (sizeof(std::remove_cvref_t<U>) <= sizeof(SignedBigger))
     {
         const auto real_m { this->real_m<SignedBigger>() };
         const SignedBigger result { static_cast<SignedBigger>(x) % real_m };
