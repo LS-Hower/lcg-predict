@@ -14,7 +14,7 @@ To test: Compile `lcg_predict_test.cpp`. If it compiles, it passes the test. The
 ## Interface
 
 Given `T` as an unsigned integer type, the library exposes:
-- Class `LCGAffineTransform<T>`: combines three `a`, `c` and `m` of type `T`, describing an affine transformation x -> (ax + c) mod m.
+- Class `LCGAffineTransform<T>`: combines three `a`, `c` and `m` of type `T`, describing an affine transformation $x \mapsto (ax + c) \bmod m$.
 - Class `LCGEngine<T>`: combines an `LCGAffineTransform<T>` and an internal `state` of type `T`.
 - Some instances of `LCGEngine<T>`, corresponding to some widely used LCGs.
 
@@ -305,7 +305,7 @@ f^{(n/2)} \circ f^{(n/2)}, & n > 0 \text{ and } n \text{ is even}.
 \end{cases}
 $$
 
-where $\mathrm{id}$ denotes the identity transformation, $\mathrm{id}(x) = x$. There is no need to explicitly write “$\bmod m$” here, since the initial seed already lies in the range $[0, m)$.
+where $\mathrm{id}$ denotes the identity transformation, $\mathrm{id}(x) = x$. There is no need to explicitly write $\bmod m$ here, since the initial seed already lies in the range $[0, m)$.
 
 This recurrence immediately yields an $\Theta(\log n)$ algorithm for computing $f^{(n)}$, analogous to fast exponentiation. In fact, fast exponentiation is just a special case of this more general idea: the same algorithm applies to any associative operation, including function composition. The library implements this generalized algorithm.
 
